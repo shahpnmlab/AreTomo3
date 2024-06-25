@@ -264,7 +264,7 @@ cuda: $(CUCPPS)
 compile: $(OBJS)
 
 exe: $(OBJS)
-	@$(NVCC) -g -G -m64 $(OBJS) \
+	@$(NVCC) -G -m64 $(OBJS) \
 	$(PRJLIB)/libmrcfile.a $(PRJLIB)/libutil.a \
 	-L$(CUDALIB) -L$(CUDALIB)/stubs\
 	-L$(CONDA)/lib \
