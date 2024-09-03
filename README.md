@@ -6,7 +6,7 @@ AreTomo3 is developed on Linux platform equipped with at least one Nvidia GPU ca
 
 1.      git clone https://github.com/czimaginginstitute/AreTomo3.git
 2.      cd AreTomo3
-3.      make exe -f makefile11 [CUDAHOME=path/cuda-xx.x]
+3.      make CXXFLAGS="-I/apps/eb/2022b/skylake/software/CUDA/12.1.0/include" -f makefile11 /apps/eb/2022b/skylake/software/CUDA/12.1.0/
 
 If the compute capability of GPUs is 5.x, use makefile instead. If CUDAHOME is not provided, the default installation path of CUDA given in makefile or makefile11 will be used.
 
