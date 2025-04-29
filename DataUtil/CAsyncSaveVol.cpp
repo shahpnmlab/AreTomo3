@@ -41,6 +41,7 @@ void CAsyncSaveVol::DeleteInstances(void)
 CAsyncSaveVol::CAsyncSaveVol(void)
 {
 	m_iNthGpu = 0;
+	m_pVolSeries = 0L;
 }
 
 //------------------------------------------------------------------------------
@@ -48,6 +49,9 @@ CAsyncSaveVol::CAsyncSaveVol(void)
 //------------------------------------------------------------------------------
 CAsyncSaveVol::~CAsyncSaveVol(void)
 {
+	if(m_pVolSeries != 0L) 
+	{	delete m_pVolSeries;
+	}
 }
 
 bool CAsyncSaveVol::DoIt
@@ -56,7 +60,12 @@ bool CAsyncSaveVol::DoIt
 	bool bAsync,
 	bool bClean
 )
-{	m_pVolSeries = pVolSeries;
+{	if(m_pVolSeries != 0L)
+	{	delete m_pVolSeries;
+		m_pVolSeries = 0L;
+	}
+	//-----------------
+	m_pVolSeries = pVolSeries;
 	m_iNthVol = iNthVol;
 	m_bClean = bClean;
 	//-----------------
@@ -72,6 +81,15 @@ void CAsyncSaveVol::ThreadMain(void)
 
 void CAsyncSaveVol::mSaveVol(void)
 {
+	CInput* pInput = CInput::GetInstance();
+	if(pInput->m_iSplitSum == 0)
+	{	if(m_iNthVol == 1) return;
+		if(m_iNthVol == 2) return;
+	}
+	//---------------------------
+	MD::CTimeStamp* pTimeStamp = MD::CTimeStamp::GetInstance(m_iNthGpu);
+	pTimeStamp->Record("SaveTomogram:Start");
+	//---------------------------
 	char acExt[32] = {'\0'}, acMrcFile[256] = {'\0'};
 	if(m_iNthVol == 0) strcpy(acExt, "_Vol.mrc");
 	else if(m_iNthVol == 1) strcpy(acExt, "_EVN_Vol.mrc");
@@ -79,7 +97,7 @@ void CAsyncSaveVol::mSaveVol(void)
 	else if(m_iNthVol == 3) strcpy(acExt, "_2ND_Vol.mrc");
 	else if(m_iNthVol == 4) strcpy(acExt, "_3RD_Vol.mrc");
 	mGenFullPath(acExt, acMrcFile);
-	//-----------------
+	//---------------------------
 	Mrc::CSaveMrc saveMrc;
 	saveMrc.OpenFile(acMrcFile);
 	saveMrc.SetMode(Mrc::eMrcFloat);
@@ -88,7 +106,7 @@ void CAsyncSaveVol::mSaveVol(void)
 	   m_pVolSeries->m_aiStkSize[2], 1,
 	   m_pVolSeries->m_fPixSize);
 	saveMrc.m_pSaveMain->DoIt();
-        //-----------------
+	//---------------------------
 	float** ppfImages = m_pVolSeries->GetImages();
 	for(int i=0; i<m_pVolSeries->m_aiStkSize[2]; i++)
 	{	float fTilt = m_pVolSeries->m_pfTilts[i];
@@ -97,10 +115,13 @@ void CAsyncSaveVol::mSaveVol(void)
 		saveMrc.m_pSaveImg->DoIt(i, ppfImages[i]);
 	}
 	saveMrc.CloseFile();
-	//-----------------
-	if(m_bClean && m_pVolSeries != 0L) delete m_pVolSeries;
-	m_pVolSeries = 0L;
-	//-----------------
+	//---------------------------
+	if(m_bClean && m_pVolSeries != 0L) 
+	{	delete m_pVolSeries;
+		m_pVolSeries = 0L;
+	}
+	//---------------------------
+	pTimeStamp->Record("SaveTomogram:End");
 	printf("GPU %d: MRC file saved: %s\n\n", m_iNthGpu, acMrcFile);
 }
 

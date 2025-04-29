@@ -1,6 +1,7 @@
 #pragma once
 #include "../MaUtil/CMaUtilFwd.h"
 #include <Util/Util_Thread.h>
+#include <Util/Util_Time.h>
 #include <Mrcfile/CMrcFileInc.h>
 #include <queue>
 #include <unordered_map>
@@ -46,7 +47,7 @@ public:
 	void SetTilts(float* pfTilts);
 	void SetDoses(float* pfDoses);
 	void SetAcqs(int* piAcqIndices);
-	void SetSecs(int* piSecIndices);
+	void SetSecIndices(int* piSecIndices);
 	//-----------------
 	void SetImage(int iTilt, void* pvImage);
 	void SetCenter(int iFrame, float* pfCent);
@@ -56,6 +57,8 @@ public:
 	//-----------------
 	CTiltSeries* GetSubSeries(int* piStart, int* piSize);
 	void RemoveFrame(int iFrame);
+	void RemoveFrames(int* piIndices, int iNumFrms);
+	//-----------------
 	void GetAlignedSize(float fTiltAxis, int* piAlnSize);
 	float** GetImages(void); // do not free;
 	//-----------------
@@ -313,6 +316,7 @@ public:
 	int m_iAcqIdx;
 	float m_fTilt;
 	float m_fPixSize;
+	float m_fTotalDose; // from mdoc file
 	int m_iNthGpu;
 private:
 	CMcPackage(void);
@@ -534,6 +538,28 @@ private:
 	//-----------------
 	static CLogFiles* m_pInstances;
 	static int m_iNumGpus;
+};
+
+class CTimeStamp
+{
+public:
+	static void CreateInstances(void);
+	static void DeleteInstances(void);
+	static CTimeStamp* GetInstance(int iNthGpu);
+	~CTimeStamp(void);
+	void Record(const char* pcAction);
+	void Save(void);
+private:
+	CTimeStamp(void);
+	std::queue<char*> m_aTimeStampQ;
+	int m_iNthGpu;
+	//---------------------------
+	static void mOpenFile(void);
+	static int m_iNumGpus;
+	static FILE* m_pFile;
+	static Util_Time* m_pTimer;
+	static pthread_mutex_t* m_pMutex;
+	static CTimeStamp* m_pInstances;
 };
 
 class CDuInstances

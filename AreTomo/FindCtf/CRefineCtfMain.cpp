@@ -44,7 +44,9 @@ void CRefineCtfMain::DoIt(int iNthGpu)
 	printf("GPU %d: %s\n\n", iNthGpu, pcMsg);
 	mFindHandedness();
 	//-----------------
-	mRefineOffset(3.0f, !bBeta);
+	mRefineOffset(4.1f, !bBeta);
+	printf("GPU %d: %s\n\n", iNthGpu, pcMsg);
+	mRefineOffset(3.1f, !bBeta);
 	printf("GPU %d: %s\n\n", iNthGpu, pcMsg);
 	mRefineOffset(1.1f, !bBeta);
 	//-----------------
@@ -72,22 +74,11 @@ void CRefineCtfMain::DoIt(int iNthGpu)
 	//-----------------
 	pCtfRes->m_fAlphaOffset = m_fTiltOffset;
 	pCtfRes->m_fBetaOffset = m_fBetaOffset;
-	//-----------------
-	CAtInput* pAtInput = CAtInput::GetInstance();
-	if(pAtInput->m_afTiltCor[0] == 0) return;
-	pAlnParam->AddAlphaOffset(m_fTiltOffset);
-
 }
 
 void CRefineCtfMain::mFindHandedness(void)
 {
-	CAtInput* pAtInput = CAtInput::GetInstance();
 	MD::CCtfResults* pCtfRes = MD::CCtfResults::GetInstance(m_iNthGpu);
-	if(pAtInput->m_iDfHand != 0)
-	{	if(pAtInput->m_iDfHand > 0) pCtfRes->m_iDfHand = 1;
-		else pCtfRes->m_iDfHand = -1;
-		return;
-	}
 	//-------------------------------------
 	// Try positive handedness.
 	//-------------------------------------
@@ -123,7 +114,7 @@ void CRefineCtfMain::mRefineOffset(float fStep, bool bBeta)
 	//-----------------
 	for(int i=-3; i<=3; i++)
 	{	float fOffset = fInitOffset + i * fStep;
-		if(fabs(fOffset) > 16) continue;
+		if(fabs(fOffset) > 22) continue;
 		//----------------
 		if(bBeta) mGenAvgSpects(m_fTiltOffset, fOffset, fMaxTilt);
 		else mGenAvgSpects(fOffset, m_fBetaOffset, fMaxTilt);

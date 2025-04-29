@@ -80,6 +80,7 @@ private:
 	void mSkipAlign(void);
 	void mGenCtfTiles(void);
 	void mEstimateCtf(void);
+	void mRotateTiltAxis180(void);
 	//-----------------
 	void mRemoveDarkFrames(void);
 	void mRemoveDarkCtfs(void);
@@ -93,16 +94,18 @@ private:
 	void mStretchAlign(void);
 	void mRotAlign(float fAngRange, int iNumSteps);
 	void mRotAlign(void);
-	void mFindTiltOffset(void);
 	void mProjAlign(void);
 	void mPatchAlign(void);
 	void mCalcThickness(void);
+	void mCorrAngOffset(void);
 	//-----------------
 	void mSetupTsCorrection(void);
 	void mSaveForImod(void);
 	//-----------------
 	void mCorrectCTF(void);
 	void mAlignCTF(void);
+	//-----------------
+	bool mCheckTiltSeries(void);
 	//-----------------
 	MD::CTiltSeries* mBinAlnSeries(float fBin);
 	void mRecon2nd(void);
@@ -132,6 +135,8 @@ private:
 	void mLogGlobalShift(void);
 	void mLogLocalShift(void);
 	//-----------------
+	float mRotAxis180(float fAxis);
+	//-----------------
 	MAC::CCorrTomoStack* m_pCorrTomoStack;
 	float m_fRotScore;
 	int m_iNthGpu;
@@ -140,10 +145,12 @@ private:
 class CTsMetrics
 {
 public:
-	static CTsMetrics* GetInstance(void);
-	static void DeleteInstance(void);
+	static void CreateInstances(void);
+	static CTsMetrics* GetInstance(int iNthGpu);
+	static void DeleteInstances(void);
 	~CTsMetrics(void);
-	void Save(int iNthGpu);
+	void BuildMetrics(void);
+	void Save(void);
 private:
 	CTsMetrics(void);
 	void mGetMrcName(void);
@@ -153,7 +160,8 @@ private:
 	void mGetTiltAxis(void);
 	void mGetBadPatches(void);
 	void mGetCTF(void);
-	void mOpenFile(void);
+	//-----------------
+	static void mOpenFile(void);
 	void mSave(void);
 	//-----------------
 	char m_acMrcName[256];
@@ -169,11 +177,11 @@ private:
 	int m_iThickness;
 	int m_iDfHand;
 	//-----------------
-	bool m_bFirstTime;
-	FILE* m_pFile;
 	int m_iNthGpu;
-	pthread_mutex_t m_aMutex;
-	static CTsMetrics* m_pInstance;
+	static int m_iNumGpus;
+	static FILE* m_pFile;
+	static pthread_mutex_t* m_pMutex;
+	static CTsMetrics* m_pInstances;
 };
 
 }

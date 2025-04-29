@@ -36,6 +36,7 @@ public:
 	float m_fPixSize;
 	float m_fFmDose;
 	//-----------------
+	int m_iSplitSum;
 	int m_iCmd;
 	int m_iResume;
 	int m_iSerial;
@@ -54,6 +55,7 @@ public:
 	char m_acPixSizeTag[32];
 	char m_acFmDoseTag[32];
 	//-----------------
+	char m_acSplitSumTag[32];
 	char m_acCmdTag[32];
 	char m_acResumeTag[32];
 	char m_acSerialTag[32];
@@ -82,11 +84,11 @@ public:
 	char m_acGainFile[256];
 	char m_acDarkMrc[256];
 	char m_acDefectFile[256];
-	char m_acFmIntFile[256];
 	int m_aiNumPatches[3];
 	int m_iMcIter;
 	float m_fMcTol;
 	float m_fMcBin;
+	int m_iFmInt;
 	int m_aiGroup[2];
 	int m_iFmRef;
 	int m_iRotGain;
@@ -101,7 +103,7 @@ public:
 	char m_acGainFileTag[32];
 	char m_acDarkMrcTag[32];
 	char m_acDefectFileTag[32];
-	char m_acFmIntFileTag[32];
+	char m_acFmIntTag[32];
 	char m_acPatchesTag[32];
 	char m_acIterTag[32];
 	char m_acTolTag[32];
@@ -160,7 +162,6 @@ public:
 	float m_fDarkTol;
 	bool m_bIntpCor;
 	int m_iCtfTileSize;
-	int m_iDfHand;
 	int m_aiCorrCTF[2];
 	//-----------------
 	char m_acTotalDoseTag[32];
@@ -186,7 +187,6 @@ public:
 	char m_acBFactorTag[32];
 	char m_acIntpCorTag[32];
 	char m_acCorrCTFTag[32];
-	char m_acDfHandTag[32];
 private:
         CAtInput(void);
         void mPrint(void);

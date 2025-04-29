@@ -99,12 +99,32 @@ void CCalcVolThick::DoIt(int iNthGpu)
 	for(int z=0; z<iEndZ; z++)
 	{	pfCCs[z] = mMeasure(z, aiStart);
 	}
+	mSmooth(pfCCs, iEndZ);
 	//-----------------
 	mDetectEdges(pfCCs, iEndZ);
 	mSaveTmpCCs(pfCCs, iEndZ); // for debugging
 	if(pfCCs != 0L) delete[] pfCCs;
 	//-----------------
 	mClean();
+}
+
+void CCalcVolThick::mSmooth(float* pfCCs, int iSize)
+{
+	int iWin = 11;
+	float* pfBuf = new float[iSize];
+	for(int i=0; i<iSize; i++)
+	{	int iStart = i - iWin / 2;
+		double dSum = 0;
+		for(int j=0; j<iWin; j++)
+		{	int k = j + iStart;
+			if(k < 0) k = 0;
+			else if(k >= iSize) k = iSize -1;
+			dSum += pfCCs[k];
+		}
+		pfBuf[i] = (float)dSum / iWin;
+	}
+	memcpy(pfCCs, pfBuf, sizeof(float) * iSize);
+	delete[] pfBuf;
 }
 
 float CCalcVolThick::mMeasure(int iZ, int* piStart)
@@ -225,33 +245,17 @@ void CCalcVolThick::mDetectEdges(float* pfCCs, int iSize)
 	// 1) Determine the true minimums that are free
 	// from SART artifact.
 	//-----------------------------------------------
-	int iPoints = (aiMaxLocs[0] - aiMinLocs[0]) / 5;
-	if(iPoints < 5) iPoints = 5;
-	float fMeanCC1 = 0.0f;
-	for(int i=1; i<=iPoints; i++)
-	{	int j = aiMinLocs[0] + i;
-		fMeanCC1 += pfCCs[j];
-	}
-	fMeanCC1 /= iPoints;
-	//-----------------
-	iPoints = (aiMinLocs[1] - aiMaxLocs[1]) / 5;
-	if(iPoints < 5) iPoints = 5;
-	float fMeanCC2 = 0.0f;
-	for(int i=1; i<=iPoints; i++)
-	{	int j = aiMinLocs[1] - i;
-		fMeanCC2 += pfCCs[j];
-	}
-	fMeanCC2 /= iPoints;
+	float fMinCC0 = pfCCs[aiMinLocs[0]];
+	float fMinCC1 = pfCCs[aiMinLocs[1]];
 	//-----------------------------------------------
 	// 1) The sample edges are in the middle between
 	// true minimum and maximum
 	//-----------------------------------------------
-	float fW = 0.85f;
-	float fEdgeCC1 = pfCCs[aiMaxLocs[0]] * (1 - fW) + fMeanCC1 * fW;
-	float fEdgeCC2 = pfCCs[aiMaxLocs[1]] * (1 - fW) + fMeanCC2 * fW;
+	float fW = 0.55f;
+	fMaxCC = (pfCCs[aiMaxLocs[0]] + pfCCs[aiMaxLocs[1]]) * 0.5f;
+	float fEdgeCC1 = fMaxCC * (1 - fW) + fMinCC0 * fW;
+	float fEdgeCC2 = fMaxCC * (1 - fW) + fMinCC1 * fW;
 	float fEdgeCC = (fEdgeCC1 + fEdgeCC2) * 0.5f;
-	//if(fEdgeCC1 < fEdgeCC) fEdgeCC1 = fEdgeCC;
-	//if(fEdgeCC2 < fEdgeCC) fEdgeCC2 = fEdgeCC;
 	//-----------------------------------------------
 	// 1) This is initialization just in case
 	//-----------------------------------------------
@@ -271,13 +275,7 @@ void CCalcVolThick::mDetectEdges(float* pfCCs, int iSize)
 			break;
 		}
 	}
-	//-----------------
-	int iThick = aiMaxLocs[1] - aiMaxLocs[0];
-	if(iThick > 0.2 * iSize)
-	{	m_aiSampleEdges[0] = aiMaxLocs[0];
-		m_aiSampleEdges[1] = aiMaxLocs[1];
-	}
-	//-----------------
+	//------------------
 	m_aiSampleEdges[0] *= m_fBinning;
 	m_aiSampleEdges[1] *= m_fBinning;
 	//-----------------
@@ -288,7 +286,8 @@ void CCalcVolThick::mDetectEdges(float* pfCCs, int iSize)
 	int iVolCent = (int)(iHalfZ * m_fBinning);
 	pAlnParam->m_iOffsetZ = iSampleCent - iVolCent;
 	//-----------------
-	printf("Sample edges: %6d  %6d\n", m_aiSampleEdges[0], m_aiSampleEdges[1]);
+	printf("Sample edges: %6d  %6d\n\n", 
+	   m_aiSampleEdges[0], m_aiSampleEdges[1]);
 }
 
 void CCalcVolThick::mSaveTmpVol(void)

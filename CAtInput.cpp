@@ -49,14 +49,13 @@ CAtInput::CAtInput(void)
 	strcpy(m_acBFactorTag, "-Bft");
 	strcpy(m_acIntpCorTag, "-IntpCor");
 	strcpy(m_acCorrCTFTag, "-CorrCTF");
-	strcpy(m_acDfHandTag, "-DfHand");
 	//-----------------
 	m_fTotalDose = 0.0f;
 	m_afTiltAxis[0] = 0.0f;
 	m_afTiltAxis[1] = 1.0f;
 	m_iAlignZ = 0;
 	m_iVolZ = -1;
-	m_iExtZ = 200;
+	m_iExtZ = 300;
 	m_afAtBin[0] = 1.0f;  // 1st res
 	m_afAtBin[1] = 0.0f;  // no second res
 	m_afAtBin[2] = 0.0f;  // no third res
@@ -77,7 +76,6 @@ CAtInput::CAtInput(void)
 	m_iCtfTileSize = 512;
 	m_aiCorrCTF[0] = 1;
 	m_aiCorrCTF[1] = 15;
-	m_iDfHand = 0;
 	//-----------------
 	memset(m_afExtPhase, 0, sizeof(m_afExtPhase));
 	memset(m_aiAtPatches, 0, sizeof(m_aiAtPatches));
@@ -90,9 +88,13 @@ CAtInput::~CAtInput(void)
 
 void CAtInput::ShowTags(void)
 {
-	printf("%-10s\n", m_acTotalDoseTag);
 	printf("%-10s\n", m_acTiltAxisTag);
-	printf("   Tilt axis, default header value.\n\n");
+	printf("   1. User provided angle of tilt axis in degree. If users\n"
+	   "      do not provide one, AreTomo3 will search in full range.\n"
+	   "   2. If users provide one and do not want AreTomo3 to refine\n"
+	   "      it, add -1 after the provided tilt axis.\n"
+	   "   3. Otherwise, AreTomo3 regines the provided value in a\n"
+	   "      in a smaller range.\n\n");	   
 	//-----------------
 	printf("%-10s\n", m_acAlignZTag);
 	printf("   Volume height for alignment, default 256\n\n");
@@ -198,13 +200,7 @@ void CAtInput::ShowTags(void)
 	printf("%-10s\n", m_acCorrCTFTag);
 	printf("   1. When enabled, local CTF correction is performed on\n"
 	   "      raw tilt series. By default this function is enabled.\n"
-	   "   2. Passing 0 disables this function.\n");
-	//-----------------
-	printf("%-10s\n", m_acDfHandTag);
-	printf("   1. Defocus handedness. 0 means unknown and AreTomo3\n"
-	   "      will measured it.\n"
-	   "   2. 1 and -1 denote positive and negative handedness,\n"
-	   "      respectively. AreTomo3 will not measure it\n\n");
+	   "   2. Passing 0 disables this function.\n\n");
 }
 
 void CAtInput::Parse(int argc, char* argv[])
@@ -312,10 +308,6 @@ void CAtInput::Parse(int argc, char* argv[])
 	if(aiRange[1] > 2) aiRange[1] = 2;
 	aParseArgs.GetVals(aiRange, m_aiCorrCTF);	
 	//-----------------
-	aParseArgs.FindVals(m_acDfHandTag, aiRange);
-	if(aiRange[1] > 1) aiRange[1] = 1;
-	aParseArgs.GetVals(aiRange, &m_iDfHand);
-	//-----------------
 	mPrint();	
 }
 
@@ -375,7 +367,7 @@ void CAtInput::mPrint(void)
 	printf("%-10s  %d\n", m_acIntpCorTag, m_bIntpCor);
 	printf("%-10s  %d %d\n", m_acCorrCTFTag, 
 	   m_aiCorrCTF[0], m_aiCorrCTF[1]);
-	printf("%-10s  %d\n", m_acDfHandTag, m_iDfHand);
+	//-----------------
 	printf("\n");
 }
 
